@@ -1,18 +1,43 @@
 import { context, GitHub } from '@actions/github/lib/github';
-import Octokit, { PullsUpdateParams } from '@octokit/rest';
+import Octokit from '@octokit/rest';
 import { getInputs } from './action-inputs';
 import { ESource, IGithubData, JIRADetails, PullRequestParams } from './types';
-import { buildPRDescription, getJIRAIssueKeyByDefaultRegexp, getJIRAIssueKeysByCustomRegexp, getPRDescription } from './utils';
+import { getJIRAIssueKeyByDefaultRegexp, getJIRAIssueKeysByCustomRegexp } from './utils';
+
+const labelMapping = {
+  feature_development: 'Balance: New Features',
+  NewFeature: 'Balance: New Features',
+  improve_existing: 'Balance: Improve Existing',
+  TechDebt: 'Balance: Improve Existing',
+  keeping_the_lights_on: 'Balance: Keeping the Lights on',
+  increase_productivity: 'Balance: Increase Productivity',
+  increaseProductivity: 'Balance: Increase Productivity',
+} as Record<string, string>;
 
 export class GithubConnector {
   client: GitHub = {} as GitHub;
   githubData: IGithubData = {} as IGithubData;
   octokit: Octokit;
+  toGithubLabel: (string: string) => string;
 
   constructor() {
-    const { GITHUB_TOKEN } = getInputs();
+    const { GITHUB_TOKEN, LABELS } = getInputs();
     this.client = new GitHub(GITHUB_TOKEN);
     this.octokit = new Octokit({ auth: GITHUB_TOKEN });
+
+    this.toGithubLabel = (jiraLabel: string) => {
+      console.info('labels loaded', LABELS);
+      if (LABELS[jiraLabel]) {
+        console.info(`Using label mapping for ${jiraLabel} -> ${LABELS[jiraLabel]}, from action config`);
+        return LABELS[jiraLabel];
+      } else if (labelMapping[jiraLabel]) {
+        console.info(`Using label mapping for ${jiraLabel} -> ${labelMapping[jiraLabel]}, from default mapping`);
+        return labelMapping[jiraLabel];
+      }
+
+      console.info(`Label ${jiraLabel} not found in mapping`);
+      return '';
+    };
 
     this.githubData = this.getGithubData();
   }
@@ -66,18 +91,27 @@ export class GithubConnector {
   async updatePrDetails(details: JIRADetails) {
     const owner = this.githubData.owner;
     const repo = this.githubData.repository.name;
-    console.log('Updating PR details');
+    console.log('Updating PR labels');
     const { number: prNumber = 0 } = this.githubData.pullRequest;
-    const recentBody = await this.getLatestPRDescription({ repo, owner, number: this.githubData.pullRequest.number });
 
-    const prData: PullsUpdateParams = {
-      owner,
-      repo,
-      pull_number: prNumber,
-      body: getPRDescription(recentBody, buildPRDescription(details)),
-    };
+    const labels = details.labels.map(this.toGithubLabel).filter((label) => label);
 
-    return await this.client.pulls.update(prData);
+    if (labels.length === 0) {
+      console.info('No labels to add');
+      return;
+    }
+
+    try {
+      await this.client.issues.addLabels({
+        owner,
+        repo,
+        issue_number: prNumber,
+        labels,
+      });
+    } catch (error) {
+      console.error(`Failed to add labels. Check that all ${labels.join(', ')} labels exists on github.`);
+      throw error;
+    }
   }
 
   // PR description may have been updated by some other action in the same job, need to re-fetch it to get the latest

@@ -1,50 +1,62 @@
-# jira-description-action
+# jira-label-action
 
 > A lightweight solution to integrate GitHub with JIRA for project management. 🔎
 
 ![illustration](illustration.png)
 ## Installation
 
-To make `jira-description-action` a part of your workflow, just add a `jira-description-action.yml` file in your `.github/workflows/` directory in your GitHub repository.
+To make `jira-label-action` a part of your workflow, just add a `jira-label-action.yml` file in your `.github/workflows/` directory in your GitHub repository.
 
 > **Note**
-> This action fetches PR description and does not take it form context. So if you are chaining a few actions which work with PR description, put this one as the last one
+> This action fetches PR labels and does not take it form context. So if you are chaining a few actions which work with PR labels, put this one as the last one
  
+> **Note**
+> Github target label should exists prior to apply the label.
 ```yml
-name: jira-description-action
+name: jira-label-action
 on:
   pull_request:
     types: [opened, edited]
 jobs:
-  add-jira-description:
+  add-jira-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: cakeinpanic/jira-description-action@v0.3.3
-        name: jira-description-action
+      - uses: nicoandresr/jira-label-action@master
+        name: jira-label-action
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           jira-token: ${{ secrets.JIRA_TOKEN }}
           jira-base-url: https://your-domain.atlassian.net
           skip-branches: '^(production-release|main|master|release\/v\d+)$' #optional 
           custom-issue-number-regexp: '^\d+' #optional
-          jira-project-key: 'PRJ' #optional    
+          jira-project-key: 'PRJ' #optional
+          labels: '{"jiraLabel": "toGithubLabel"}'
 ```
 `
 ## Features
-When a PR passes the above check, `jira-description-action` will also add the issue details to the top of the PR description. 
+When a PR passes the above check, `jira-label-action` will also add the issue labels. 
 
 ### Options
 
 | key                    | description                                                                                                                                                                                                                                                                                                        | required | default |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------- |
-| `github-token`         | Token used to update PR description. `GITHUB_TOKEN` is already available [when you use GitHub actions](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret), so all that is required is to pass it as a param here. | true     | null    |
+| `github-token`         | Token used to update PR labels. `GITHUB_TOKEN` is already available [when you use GitHub actions](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret), so all that is required is to pass it as a param here. | true     | null    |
 | `jira-token`           | Token used to fetch Jira Issue information.  Check [below](#jira-token) for more details on how to generate the token.                                                                                                          | true     | null    |
 | `jira-base-url`        | The subdomain of JIRA cloud that you use to access it. Ex: "https://your-domain.atlassian.net".                                                                                                                                                                                                                    | true     | null    |
-| `skip-branches`        | A regex to ignore running `jira-description-action` on certain branches, like production etc.                                                                                                                                                                                                                                    | false    | ' '     |
+| `skip-branches`        | A regex to ignore running `jira-label-action` on certain branches, like production etc.                                                                                                                                                                                                                                    | false    | ' '     |
 | `use`                  | Enum: `branch \| pr-title \| both`, to search for issue number in branch name or in PR title                                                                                                                                                                                                                               | false    | pr-title     |
 | `jira-project-key`     | Key of project in jira. First part of issue key | false    | none     |
 | `custom-issue-number-regexp` | Custom regexp to extract issue number from branch name. If not specified, default regexp would be used.  | false    | none     |
 | `fail-when-jira-issue-not-found` | Should action fail if jira issue is not found in jira  | false    | false     |
+| `labels` | Json with the label mapping. Github label equivalent should exists | true | false |
+
+labels object should be a json string:
+
+```json
+{
+  "Jira Label": "To Github Label",
+}
+```
 
 Tokens are private, so it's suggested adding them as [GitHub secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets).
 
@@ -61,7 +73,7 @@ Note: The user should have the [required permissions (mentioned under GET Issue)
 
 `skip-branches` must be a regex which will work for all sets of branches you want to ignore. This is useful for merging protected/default branches into other branches. Check out some examples in the tests in thi repo
 
-`jira-description-action` already skips PRs which are filed by [dependabot](https://github.com/marketplace/dependabot-preview)
+`jira-label-action` already skips PRs which are filed by [dependabot](https://github.com/marketplace/dependabot-preview)
 
 ### Searching in branch name/PR title
 

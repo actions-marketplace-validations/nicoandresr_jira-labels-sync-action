@@ -28,12 +28,13 @@ export class JiraConnector {
     try {
       const issue: JIRA.Issue = await this.getIssue(key);
       const {
-        fields: { issuetype: type, project, summary },
+        fields: { issuetype: type, labels, project, summary },
       } = issue;
 
       return {
         key,
         summary,
+        labels,
         url: `${this.JIRA_BASE_URL}/browse/${key}`,
         type: {
           name: type.name,
