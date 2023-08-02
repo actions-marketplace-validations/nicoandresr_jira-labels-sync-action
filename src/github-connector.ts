@@ -4,16 +4,6 @@ import { getInputs } from './action-inputs';
 import { ESource, IGithubData, JIRADetails, PullRequestParams } from './types';
 import { getJIRAIssueKeyByDefaultRegexp, getJIRAIssueKeysByCustomRegexp } from './utils';
 
-const labelMapping = {
-  feature_development: 'Balance: New Features',
-  NewFeature: 'Balance: New Features',
-  improve_existing: 'Balance: Improve Existing',
-  TechDebt: 'Balance: Improve Existing',
-  keeping_the_lights_on: 'Balance: Keeping the Lights on',
-  increase_productivity: 'Balance: Increase Productivity',
-  increaseProductivity: 'Balance: Increase Productivity',
-} as Record<string, string>;
-
 export class GithubConnector {
   client: GitHub = {} as GitHub;
   githubData: IGithubData = {} as IGithubData;
@@ -26,13 +16,10 @@ export class GithubConnector {
     this.octokit = new Octokit({ auth: GITHUB_TOKEN });
 
     this.toGithubLabel = (jiraLabel: string) => {
-      console.info('labels loaded', LABELS);
+      console.info('labels loaded from action workflow setup:', LABELS);
       if (LABELS[jiraLabel]) {
         console.info(`Using label mapping for ${jiraLabel} -> ${LABELS[jiraLabel]}, from action config`);
         return LABELS[jiraLabel];
-      } else if (labelMapping[jiraLabel]) {
-        console.info(`Using label mapping for ${jiraLabel} -> ${labelMapping[jiraLabel]}, from default mapping`);
-        return labelMapping[jiraLabel];
       }
 
       console.info(`Label ${jiraLabel} not found in mapping`);
