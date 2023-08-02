@@ -20,7 +20,7 @@ jobs:
   add-jira-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: nicoandresr/jira-labels-sync-action@master
+      - uses: nicoandresr/jira-labels-sync-action@v1.0.0
         name: jira-labels-sync-action
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
