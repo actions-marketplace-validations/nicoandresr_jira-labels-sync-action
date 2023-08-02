@@ -1,19 +1,18 @@
-# jira-label-action
+# jira-labels-sync-action
 
 > A lightweight solution to integrate GitHub with JIRA for project management. 🔎
 
-![illustration](illustration.png)
 ## Installation
 
-To make `jira-label-action` a part of your workflow, just add a `jira-label-action.yml` file in your `.github/workflows/` directory in your GitHub repository.
+To make `jira-labels-sync-action` a part of your workflow, just add a `jira-labels-sync-action.yml` file in your `.github/workflows/` directory in your GitHub repository.
 
 > **Note**
 > This action fetches PR labels and does not take it form context. So if you are chaining a few actions which work with PR labels, put this one as the last one
  
 > **Note**
-> Github target label should exists prior to apply the label.
+> Github target labels should exists prior to apply any label from Jira.
 ```yml
-name: jira-label-action
+name: jira-labels-sync-action
 on:
   pull_request:
     types: [opened, edited]
@@ -21,8 +20,8 @@ jobs:
   add-jira-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: nicoandresr/jira-label-action@master
-        name: jira-label-action
+      - uses: nicoandresr/jira-labels-sync-action@master
+        name: jira-labels-sync-action
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           jira-token: ${{ secrets.JIRA_TOKEN }}
@@ -34,7 +33,7 @@ jobs:
 ```
 `
 ## Features
-When a PR passes the above check, `jira-label-action` will also add the issue labels. 
+When a PR passes the above check, `jira-labels-sync-action` will also add the issue labels. 
 
 ### Options
 
@@ -43,7 +42,7 @@ When a PR passes the above check, `jira-label-action` will also add the issue la
 | `github-token`         | Token used to update PR labels. `GITHUB_TOKEN` is already available [when you use GitHub actions](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/authenticating-with-the-github_token#about-the-github_token-secret), so all that is required is to pass it as a param here. | true     | null    |
 | `jira-token`           | Token used to fetch Jira Issue information.  Check [below](#jira-token) for more details on how to generate the token.                                                                                                          | true     | null    |
 | `jira-base-url`        | The subdomain of JIRA cloud that you use to access it. Ex: "https://your-domain.atlassian.net".                                                                                                                                                                                                                    | true     | null    |
-| `skip-branches`        | A regex to ignore running `jira-label-action` on certain branches, like production etc.                                                                                                                                                                                                                                    | false    | ' '     |
+| `skip-branches`        | A regex to ignore running `jira-labels-sync-action` on certain branches, like production etc.                                                                                                                                                                                                                                    | false    | ' '     |
 | `use`                  | Enum: `branch \| pr-title \| both`, to search for issue number in branch name or in PR title                                                                                                                                                                                                                               | false    | pr-title     |
 | `jira-project-key`     | Key of project in jira. First part of issue key | false    | none     |
 | `custom-issue-number-regexp` | Custom regexp to extract issue number from branch name. If not specified, default regexp would be used.  | false    | none     |
@@ -73,7 +72,7 @@ Note: The user should have the [required permissions (mentioned under GET Issue)
 
 `skip-branches` must be a regex which will work for all sets of branches you want to ignore. This is useful for merging protected/default branches into other branches. Check out some examples in the tests in thi repo
 
-`jira-label-action` already skips PRs which are filed by [dependabot](https://github.com/marketplace/dependabot-preview)
+`jira-labels-sync-action` already skips PRs which are filed by [dependabot](https://github.com/marketplace/dependabot-preview)
 
 ### Searching in branch name/PR title
 

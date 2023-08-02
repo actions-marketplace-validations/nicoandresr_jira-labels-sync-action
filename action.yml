@@ -1,9 +1,9 @@
-name: 'jira-balance-framework'
-description: 'Add JIRA issue balance framework label to your GitHub pull request.'
+name: 'jira-labels-sync-action'
+description: 'Sync JIRA issue labels to your GitHub pull request.'
 author: 'nicoandres.rodriguez@gmail.com'
 inputs:
   github-token:
-    description: 'Token used to update PR label and add labels. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
+    description: 'Token used to sync PR labels. Can be passed in using {{ secrets.GITHUB_TOKEN }}'
     required: true
   jira-token:
     description: 'API Token used to access the JIRA REST API. Must have read access to your JIRA Projects & Issues. Format: <jira username>:<jira token>'
@@ -31,7 +31,7 @@ inputs:
       required: false
       default: 'false'
   labels:
-    description: 'label mapping from Jira labels to Github in json format. Github label should exist'
+    description: 'label mapping from Jira labels to Github in json format. Github labels should exist'
     required: true
       
 runs:
